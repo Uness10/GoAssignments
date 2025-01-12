@@ -59,6 +59,8 @@ func main() {
 	handleCustomerRequests(router, customerHandler)
 	handleOrderRequests(router, orderHandler)
 
+	database.Schedule()
+
 	// Start the HTTP server
 	log.Println("Server starting on :8080")
 	log.Fatal(http.ListenAndServe(":8080", router))

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 )
 
 type InMemoryStore struct {
@@ -18,6 +19,7 @@ type InMemoryStore struct {
 var (
 	instance *InMemoryStore
 	once     sync.Once
+	mutex    sync.RWMutex
 )
 
 func NewInMemoryStore() (*InMemoryStore, error) {
@@ -67,6 +69,10 @@ func initializeStores(store *InMemoryStore) {
 func LoadData() (*InMemoryStore, error) {
 	data, err := os.ReadFile("database.json")
 	if err != nil {
+		// If file doesn't exist, return empty store
+		if os.IsNotExist(err) {
+			return &InMemoryStore{}, nil
+		}
 		return nil, err
 	}
 
@@ -77,4 +83,43 @@ func LoadData() (*InMemoryStore, error) {
 	}
 
 	return store, nil
+}
+
+func SaveData(store *InMemoryStore) error {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	data, err := json.MarshalIndent(store, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create("database.json")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.Write(data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *InMemoryStore) Schedule() {
+	go func() {
+		for {
+			time.Sleep(10 * time.Second)
+			err := SaveData(s)
+			if err != nil {
+				log.Fatal(err)
+				return
+			}
+			log.Println("saving data")
+		}
+
+	}()
+
 }
