@@ -32,14 +32,14 @@ paths:
         '500':
           description: Internal server error
     get:
-      summary: List all books
+      summary: List all books or get by some filters in query object  : title, author,genre , quanitity (number of items in the stock)
       description: This endpoint lists all books.
       operationId: listBooks
       tags:
         - Books
       responses:
         '200':
-          description: List of all books
+          description: List of all books,  if no  query object ( with filters) is provided in json.
           content:
             application/json:
               schema:
@@ -153,15 +153,14 @@ paths:
         '500':
           description: Internal server error
     get:
-      summary: List all authors
+      summary: List all authors or get by some filters : firstName , ladtName , name.
       description: This endpoint lists all authors.
       operationId: listAuthors
       tags:
         - Authors
       responses:
         '200':
-          description: List of all authors
-          content:
+          description: list authors  
             application/json:
               schema:
                 type: array

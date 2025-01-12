@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	"bookstore.com/models"
 	"bookstore.com/services"
@@ -20,7 +22,6 @@ var (
 	AuthorOnce     sync.Once
 )
 
-// NewAuthorHandler initializes a singleton AuthorInstance of AuthorHandler.
 func NewAuthorHandler(AuthorService *services.AuthorService) *AuthorHandler {
 	AuthorOnce.Do(func() {
 		AuthorInstance = &AuthorHandler{AuthorService: AuthorService}
@@ -28,18 +29,19 @@ func NewAuthorHandler(AuthorService *services.AuthorService) *AuthorHandler {
 	return AuthorInstance
 }
 
-// CreateAuthor handles the creation of a new Author.
 func (h *AuthorHandler) CreateAuthor(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	start := time.Now()
 
-	var Author models.Author
-	err := json.NewDecoder(r.Body).Decode(&Author)
-	if err != nil {
+	var author models.Author
+	if err := json.NewDecoder(r.Body).Decode(&author); err != nil {
+		log.Printf("AuthorHandler.Create: invalid input error: %v, duration: %v", err, time.Since(start))
 		http.Error(w, "Invalid input: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	createdAuthor, err := h.AuthorService.CreateAuthor(Author)
+	createdAuthor, err := h.AuthorService.CreateAuthor(author)
 	if err != nil {
+		log.Printf("AuthorHandler.Create: service error: %v, duration: %v", err, time.Since(start))
 		http.Error(w, "Internal server error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -47,102 +49,114 @@ func (h *AuthorHandler) CreateAuthor(w http.ResponseWriter, r *http.Request, _ h
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(createdAuthor); err != nil {
-		http.Error(w, "Failed to write response: "+err.Error(), http.StatusInternalServerError)
+		log.Printf("AuthorHandler.Create: encoding error: %v, duration: %v", err, time.Since(start))
+		return
 	}
+
+	log.Printf("AuthorHandler.Create: success, duration: %v", time.Since(start))
 }
 
-// GetAuthorById retrieves a Author by its ID.
 func (h *AuthorHandler) GetAuthorById(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	start := time.Now()
 
 	id, err := strconv.Atoi(ps.ByName("id"))
 	if err != nil {
+		log.Printf("AuthorHandler.GetById: invalid id error: %v, duration: %v", err, time.Since(start))
 		http.Error(w, "Invalid Author ID", http.StatusBadRequest)
 		return
 	}
 
-	Author, err := h.AuthorService.GetAuthor(id)
+	author, err := h.AuthorService.GetAuthor(id)
 	if err != nil {
+		log.Printf("AuthorHandler.GetById: not found error: %v, duration: %v", err, time.Since(start))
 		http.Error(w, "Author not found: "+err.Error(), http.StatusNotFound)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(Author); err != nil {
-		http.Error(w, "Failed to write response: "+err.Error(), http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(author); err != nil {
+		log.Printf("AuthorHandler.GetById: encoding error: %v, duration: %v", err, time.Since(start))
+		return
 	}
+
+	log.Printf("AuthorHandler.GetById: success, duration: %v", time.Since(start))
 }
 
-// GetAllAuthors retrieves all Authors.
 func (h *AuthorHandler) GetAuthorsByCriteria(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	start := time.Now()
 
-	var query = models.SearchCriteria{
-		Filters: make(map[string]interface{}),
-	}
-	err := json.NewDecoder(r.Body).Decode(&query.Filters)
-	if err != nil {
-		query = models.SearchCriteria{
-			Filters: make(map[string]interface{}),
-		}
-
+	var query = models.SearchCriteria{Filters: make(map[string]interface{})}
+	if err := json.NewDecoder(r.Body).Decode(&query.Filters); err != nil {
+		query.Filters = make(map[string]interface{})
+		log.Printf("AuthorHandler.Search: invalid criteria error: %v, duration: %v", err, time.Since(start))
 	}
 
-	// Call the service layer to search for Authors based on criteria
-	Authors, err := h.AuthorService.SearchAuthors(query)
+	authors, err := h.AuthorService.SearchAuthors(query)
 	if err != nil {
+		log.Printf("AuthorHandler.Search: service error: %v, duration: %v", err, time.Since(start))
 		http.Error(w, "Internal server error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Respond with the found Authors
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(Authors); err != nil {
-		http.Error(w, "Failed to write response: "+err.Error(), http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(authors); err != nil {
+		log.Printf("AuthorHandler.Search: encoding error: %v, duration: %v", err, time.Since(start))
+		return
 	}
+
+	log.Printf("AuthorHandler.Search: success, returned %d authors, duration: %v", len(authors), time.Since(start))
 }
 
-// UpdateAuthorById updates a Author by its ID.
 func (h *AuthorHandler) UpdateAuthorById(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	start := time.Now()
 
 	id, err := strconv.Atoi(ps.ByName("id"))
 	if err != nil {
+		log.Printf("AuthorHandler.Update: invalid id error: %v, duration: %v", err, time.Since(start))
 		http.Error(w, "Invalid Author ID", http.StatusBadRequest)
 		return
 	}
 
-	var Author models.Author
-	err = json.NewDecoder(r.Body).Decode(&Author)
-	if err != nil {
+	var author models.Author
+	if err = json.NewDecoder(r.Body).Decode(&author); err != nil {
+		log.Printf("AuthorHandler.Update: invalid input error: %v, duration: %v", err, time.Since(start))
 		http.Error(w, "Invalid input: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	Author.ID = id
+	author.ID = id
 
-	updatedAuthor, err := h.AuthorService.UpdateAuthor(Author)
+	updatedAuthor, err := h.AuthorService.UpdateAuthor(author)
 	if err != nil {
+		log.Printf("AuthorHandler.Update: service error: %v, duration: %v", err, time.Since(start))
 		http.Error(w, "Author not found: "+err.Error(), http.StatusNotFound)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(updatedAuthor); err != nil {
-		http.Error(w, "Failed to write response: "+err.Error(), http.StatusInternalServerError)
+		log.Printf("AuthorHandler.Update: encoding error: %v, duration: %v", err, time.Since(start))
+		return
 	}
+
+	log.Printf("AuthorHandler.Update: success, duration: %v", time.Since(start))
 }
 
-// DeleteAuthorById deletes a Author by its ID.
 func (h *AuthorHandler) DeleteAuthorById(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	start := time.Now()
 
 	id, err := strconv.Atoi(ps.ByName("id"))
 	if err != nil {
+		log.Printf("AuthorHandler.Delete: invalid id error: %v, duration: %v", err, time.Since(start))
 		http.Error(w, "Invalid Author ID", http.StatusBadRequest)
 		return
 	}
 
-	err = h.AuthorService.DeleteAuthor(id)
-	if err != nil {
+	if err = h.AuthorService.DeleteAuthor(id); err != nil {
+		log.Printf("AuthorHandler.Delete: service error: %v, duration: %v", err, time.Since(start))
 		http.Error(w, "Author not found: "+err.Error(), http.StatusNotFound)
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+	log.Printf("AuthorHandler.Delete: success, duration: %v", time.Since(start))
 }
