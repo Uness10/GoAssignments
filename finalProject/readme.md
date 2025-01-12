@@ -66,19 +66,19 @@ The project is structured as follows:
 
 ### Directories and Files Breakdown
 
-- **/handlers**: Contains the HTTP handler functions which process incoming requests, map them to the appropriate service methods, and return responses.
+- **/handlers**: Contains the HTTP handler functions which process incoming requests, map them to the appropriate service methods, and return responses. Each handler is implemented using the Singleton design pattern to ensure only one instance exists throughout the application's lifecycle.
   - **BookHandler**: Manages HTTP operations related to books (e.g., `CreateBook`, `GetBookById`).
   - **AuthorHandler**: Handles requests for author-related operations.
   - **CustomerHandler**: Processes customer management requests.
   - **OrderHandler**: Deals with order processing.
   - **BookSaleHandler**: Manages operations related to book sales.
 
-- **/memory**: Implements the in-memory data store using Go maps and sync mechanisms (mutexes). Singleton instances are used for managing resources like books, customers, and orders.
-  - **BookMemoryStore**: A map-based storage for books, using Go’s `sync.Mutex` for thread-safe operations.
-  - **AuthorMemoryStore**: Handles the in-memory storage for authors.
-  - **CustomerMemoryStore**: Manages customer data in memory.
-  - **OrderMemoryStore**: Stores order data, with methods for CRUD operations.
-  - **BookSaleMemoryStore**: Tracks book sales in memory, enabling quick access and modifications.
+- **/memory**: Implements the in-memory data store using Go maps and sync mechanisms (mutexes).Each store is implemented using the Singleton design pattern to ensure only one instance exists throughout the application's lifecycle. 
+  - **InMemoryBookStore**: A map-based storage for books, using Go’s `sync.Mutex` for thread-safe operations.
+  - **InMemoryAuthorStore**: Handles the in-memory storage for authors.
+  - **InMemoryCustomerStore**: Manages customer data in memory.
+  - **InMemory*OrderStore**: Stores order data, with methods for CRUD operations.
+  - **InMemoryBookSaleStore**: Tracks book sales in memory, enabling quick access and modifications.
 
 - **/models**: Defines the data models that represent entities such as books, authors, orders, and book sales.
   - **Book**: Represents a book with attributes like `ID`, `Title`, `AuthorID`, `Price`, and `Stock`.
