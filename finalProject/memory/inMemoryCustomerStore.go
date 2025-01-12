@@ -2,6 +2,7 @@ package memory
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 
 	"bookstore.com/models"
@@ -13,13 +14,24 @@ type InMemoryCustomerStore struct {
 	nextID    int
 }
 
+var (
+	customerStoreInstance *InMemoryCustomerStore
+	customerStoreOnce     sync.Once
+)
+
+// NewInMemoryCustomerStore returns the singleton instance of InMemoryCustomerStore
 func NewInMemoryCustomerStore() *InMemoryCustomerStore {
-	return &InMemoryCustomerStore{
-		Customers: make(map[int]models.Customer),
-		nextID:    1,
-	}
+	// Initialize the singleton instance only once
+	customerStoreOnce.Do(func() {
+		customerStoreInstance = &InMemoryCustomerStore{
+			Customers: make(map[int]models.Customer),
+			nextID:    1,
+		}
+	})
+	return customerStoreInstance
 }
 
+// Create adds a new customer to the store
 func (s *InMemoryCustomerStore) Create(Customer models.Customer) (models.Customer, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -30,10 +42,12 @@ func (s *InMemoryCustomerStore) Create(Customer models.Customer) (models.Custome
 	return Customer, nil
 }
 
+// Get retrieves a customer by ID
 func (s *InMemoryCustomerStore) Get(id int) (models.Customer, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	fmt.Println(s.Customers)
 	Customer, exists := s.Customers[id]
 	if !exists {
 		return models.Customer{}, errors.New("Customer not found")
@@ -41,6 +55,7 @@ func (s *InMemoryCustomerStore) Get(id int) (models.Customer, error) {
 	return Customer, nil
 }
 
+// Update modifies an existing customer in the store
 func (s *InMemoryCustomerStore) Update(Customer models.Customer) (models.Customer, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -53,6 +68,7 @@ func (s *InMemoryCustomerStore) Update(Customer models.Customer) (models.Custome
 	return Customer, nil
 }
 
+// Delete removes a customer by ID
 func (s *InMemoryCustomerStore) Delete(id int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -65,6 +81,7 @@ func (s *InMemoryCustomerStore) Delete(id int) error {
 	return nil
 }
 
+// Search filters customers based on the search criteria
 func (s *InMemoryCustomerStore) Search(query models.SearchCriteria) ([]models.Customer, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

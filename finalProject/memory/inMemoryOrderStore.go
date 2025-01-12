@@ -13,13 +13,24 @@ type InMemoryOrderStore struct {
 	nextID int
 }
 
+var (
+	orderStoreInstance *InMemoryOrderStore
+	orderStoreOnce     sync.Once
+)
+
+// NewInMemoryOrderStore returns the singleton instance of InMemoryOrderStore
 func NewInMemoryOrderStore() *InMemoryOrderStore {
-	return &InMemoryOrderStore{
-		Orders: make(map[int]models.Order),
-		nextID: 1,
-	}
+	// Initialize the singleton instance only once
+	orderStoreOnce.Do(func() {
+		orderStoreInstance = &InMemoryOrderStore{
+			Orders: make(map[int]models.Order),
+			nextID: 1,
+		}
+	})
+	return orderStoreInstance
 }
 
+// Create adds a new order to the store
 func (s *InMemoryOrderStore) Create(Order models.Order) (models.Order, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -30,6 +41,7 @@ func (s *InMemoryOrderStore) Create(Order models.Order) (models.Order, error) {
 	return Order, nil
 }
 
+// Get retrieves an order by ID
 func (s *InMemoryOrderStore) Get(id int) (models.Order, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -41,6 +53,7 @@ func (s *InMemoryOrderStore) Get(id int) (models.Order, error) {
 	return Order, nil
 }
 
+// Update modifies an existing order in the store
 func (s *InMemoryOrderStore) Update(Order models.Order) (models.Order, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -53,6 +66,7 @@ func (s *InMemoryOrderStore) Update(Order models.Order) (models.Order, error) {
 	return Order, nil
 }
 
+// Delete removes an order by ID
 func (s *InMemoryOrderStore) Delete(id int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -65,6 +79,7 @@ func (s *InMemoryOrderStore) Delete(id int) error {
 	return nil
 }
 
+// Search filters orders based on the search criteria
 func (s *InMemoryOrderStore) Search(query models.SearchCriteria) ([]models.Order, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

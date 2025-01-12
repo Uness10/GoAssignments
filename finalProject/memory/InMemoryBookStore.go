@@ -14,13 +14,24 @@ type InMemoryBookStore struct {
 	nextID int
 }
 
+var (
+	bookStoreInstance *InMemoryBookStore
+	bookStoreOnce     sync.Once
+)
+
+// NewInMemoryBookStore returns the singleton instance of InMemoryBookStore
 func NewInMemoryBookStore() *InMemoryBookStore {
-	return &InMemoryBookStore{
-		Books:  make(map[int]models.Book),
-		nextID: 1,
-	}
+	// Initialize the singleton instance only once
+	bookStoreOnce.Do(func() {
+		bookStoreInstance = &InMemoryBookStore{
+			Books:  make(map[int]models.Book),
+			nextID: 1,
+		}
+	})
+	return bookStoreInstance
 }
 
+// Create adds a new book to the store
 func (s *InMemoryBookStore) Create(book models.Book) (models.Book, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -31,6 +42,7 @@ func (s *InMemoryBookStore) Create(book models.Book) (models.Book, error) {
 	return book, nil
 }
 
+// Get retrieves a book by ID
 func (s *InMemoryBookStore) Get(id int) (models.Book, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -42,6 +54,7 @@ func (s *InMemoryBookStore) Get(id int) (models.Book, error) {
 	return book, nil
 }
 
+// Update modifies an existing book in the store
 func (s *InMemoryBookStore) Update(book models.Book) (models.Book, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -54,6 +67,7 @@ func (s *InMemoryBookStore) Update(book models.Book) (models.Book, error) {
 	return book, nil
 }
 
+// Delete removes a book by ID
 func (s *InMemoryBookStore) Delete(id int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -66,6 +80,7 @@ func (s *InMemoryBookStore) Delete(id int) error {
 	return nil
 }
 
+// Search filters books based on the search criteria
 func (s *InMemoryBookStore) Search(query models.SearchCriteria) ([]models.Book, error) {
 	var results []models.Book
 	if len(query.Filters) == 0 {
@@ -107,6 +122,7 @@ func (s *InMemoryBookStore) Search(query models.SearchCriteria) ([]models.Book, 
 				match = false
 			}
 		}
+
 		if match {
 			results = append(results, book)
 		}

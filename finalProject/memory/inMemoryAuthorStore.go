@@ -2,6 +2,7 @@ package memory
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -14,11 +15,19 @@ type InMemoryAuthorStore struct {
 	nextID  int
 }
 
+var (
+	authorInstance *InMemoryAuthorStore
+	authorOnce     sync.Once
+)
+
 func NewInMemoryAuthorStore() *InMemoryAuthorStore {
-	return &InMemoryAuthorStore{
-		Authors: make(map[int]models.Author),
-		nextID:  1,
-	}
+	authorOnce.Do(func() {
+		authorInstance = &InMemoryAuthorStore{
+			Authors: make(map[int]models.Author),
+			nextID:  1,
+		}
+	})
+	return authorInstance
 }
 
 func (s *InMemoryAuthorStore) Create(Author models.Author) (models.Author, error) {
@@ -36,6 +45,7 @@ func (s *InMemoryAuthorStore) Get(id int) (models.Author, error) {
 	defer s.mu.Unlock()
 
 	Author, exists := s.Authors[id]
+	fmt.Println(s.Authors)
 	if !exists {
 		return models.Author{}, errors.New("Author not found")
 	}

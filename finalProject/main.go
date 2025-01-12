@@ -48,12 +48,16 @@ func DispatcherWrapper(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 
 func main() {
 	// Initialize the book service with the in-memory store
-	bookService := services.NewBookService(&database.BookStore)
-	bookHandler := handlers.NewBookHandler(bookService)
-
+	bookHandler := handlers.NewBookHandler(services.NewBookService(&database.BookStore))
+	authorHandler := handlers.NewAuthorHandler(services.NewAuthorService(&database.AuthorStore))
+	customerHandler := handlers.NewCustomerHandler(services.NewCustomerService(&database.CustomerStore))
+	orderHandler := handlers.NewOrderHandler(services.NewOrderService(&database.OrderStore))
 	// Set up router
 	router := httprouter.New()
 	handleBookRequests(router, bookHandler)
+	handleAuthorRequests(router, authorHandler)
+	handleCustomerRequests(router, customerHandler)
+	handleOrderRequests(router, orderHandler)
 
 	// Start the HTTP server
 	log.Println("Server starting on :8080")

@@ -8,53 +8,64 @@ import (
 	"bookstore.com/models"
 )
 
-type InMemorybookSalestore struct {
+type InMemoryBookSaleStore struct {
 	mu        sync.Mutex
 	bookSales map[int]models.BookSale
 	nextID    int
 }
 
-func NewInMemorybookSalestore() *InMemorybookSalestore {
-	return &InMemorybookSalestore{
-		bookSales: make(map[int]models.BookSale),
-		nextID:    1,
-	}
+var (
+	bookSaleInstance *InMemoryBookSaleStore
+	bookSaleOnce     sync.Once
+)
+
+// NewInMemoryBookSaleStore returns a singleton instance of InMemoryBookSaleStore
+func NewInMemoryBookSaleStore() *InMemoryBookSaleStore {
+	bookSaleOnce.Do(func() {
+		bookSaleInstance = &InMemoryBookSaleStore{
+			bookSales: make(map[int]models.BookSale),
+			nextID:    1,
+		}
+	})
+	return bookSaleInstance
 }
 
-func (s *InMemorybookSalestore) Create(BookSale models.BookSale) (models.BookSale, error) {
+// Create adds a new BookSale entry to the store
+func (s *InMemoryBookSaleStore) Create(bookSale models.BookSale) (models.BookSale, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	BookSale.ID = s.nextID
-	s.bookSales[s.nextID] = BookSale
+	bookSale.ID = s.nextID
+	s.bookSales[s.nextID] = bookSale
 	s.nextID++
-	return BookSale, nil
+	return bookSale, nil
 }
 
-func (s *InMemorybookSalestore) Get(id int) (models.BookSale, error) {
+// Get retrieves a BookSale by its ID
+func (s *InMemoryBookSaleStore) Get(id int) (models.BookSale, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	BookSale, exists := s.bookSales[id]
+	bookSale, exists := s.bookSales[id]
 	if !exists {
 		return models.BookSale{}, errors.New("BookSale not found")
 	}
-	return BookSale, nil
+	return bookSale, nil
 }
 
-func (s *InMemorybookSalestore) Update(BookSale models.BookSale) (models.BookSale, error) {
+func (s *InMemoryBookSaleStore) Update(bookSale models.BookSale) (models.BookSale, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	_, exists := s.bookSales[BookSale.ID]
+	_, exists := s.bookSales[bookSale.ID]
 	if !exists {
 		return models.BookSale{}, errors.New("BookSale not found")
 	}
-	s.bookSales[BookSale.ID] = BookSale
-	return BookSale, nil
+	s.bookSales[bookSale.ID] = bookSale
+	return bookSale, nil
 }
 
-func (s *InMemorybookSalestore) Delete(id int) error {
+func (s *InMemoryBookSaleStore) Delete(id int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -66,32 +77,36 @@ func (s *InMemorybookSalestore) Delete(id int) error {
 	return nil
 }
 
-func (s *InMemorybookSalestore) Search(query models.SearchCriteria) ([]models.BookSale, error) {
+func (s *InMemoryBookSaleStore) Search(query models.SearchCriteria) ([]models.BookSale, error) {
 	var results []models.BookSale
 	if len(query.Filters) == 0 {
-		for _, book := range s.bookSales {
-			results = append(results, book)
+		for _, bookSale := range s.bookSales {
+			results = append(results, bookSale)
 		}
 		return results, nil
 	}
-	for _, obj := range s.bookSales {
+
+	for _, bookSale := range s.bookSales {
 		match := true
 
+		// Filter by title
 		if title, exists := query.Filters["title"]; exists {
-			if !strings.Contains(obj.Book.Title, title.(string)) {
+			if !strings.Contains(bookSale.Book.Title, title.(string)) {
 				match = false
 			}
 		}
 
+		// Filter by author (assuming you want the author's first name)
 		if author, exists := query.Filters["author"]; exists {
-			if !strings.Contains(obj.Book.Author.FirstName, author.(string)) {
+			if !strings.Contains(bookSale.Book.Author.FirstName, author.(string)) {
 				match = false
 			}
 		}
 
+		// Filter by genre
 		if genre, exists := query.Filters["genre"]; exists {
 			genreMatch := false
-			for _, g := range obj.Book.Genres {
+			for _, g := range bookSale.Book.Genres {
 				if strings.Contains(g, genre.(string)) {
 					genreMatch = true
 					break
@@ -102,14 +117,18 @@ func (s *InMemorybookSalestore) Search(query models.SearchCriteria) ([]models.Bo
 			}
 		}
 
+		// Filter by quantity
 		if quantity, exists := query.Filters["quantity"]; exists {
-			if obj.Quantity != quantity {
+			if bookSale.Quantity != quantity {
 				match = false
 			}
 		}
+
+		// If the book sale matches all filters, add to results
 		if match {
-			results = append(results, obj)
+			results = append(results, bookSale)
 		}
 	}
+
 	return results, nil
 }

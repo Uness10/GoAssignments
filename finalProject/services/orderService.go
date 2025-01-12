@@ -1,6 +1,9 @@
 package services
 
 import (
+	"errors"
+
+	"bookstore.com/memory"
 	"bookstore.com/models"
 	"bookstore.com/repositories"
 )
@@ -14,6 +17,16 @@ func NewOrderService(repo repositories.OrderStore) *OrderService {
 }
 
 func (s *OrderService) CreateOrder(order models.Order) (models.Order, error) {
+	_, customerExists := NewCustomerService(memory.NewInMemoryCustomerStore()).GetCustomer(order.Customer.ID)
+	for _, item := range order.Items {
+		_, bookFound := NewOrderItemService(memory.NewInMemoryOrderItemStore()).CreateOrderItem(item)
+		if bookFound != nil {
+			return models.Order{}, errors.New("Some Books does not exist")
+		}
+	}
+	if customerExists != nil {
+		return models.Order{}, errors.New("customer not found")
+	}
 	return s.orderRepo.Create(order)
 }
 

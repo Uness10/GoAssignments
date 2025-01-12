@@ -1,6 +1,10 @@
 package services
 
 import (
+	"errors"
+	"fmt"
+
+	"bookstore.com/memory"
 	"bookstore.com/models"
 	"bookstore.com/repositories"
 )
@@ -18,20 +22,22 @@ func NewBookService(bookRepo repositories.BookStore) *BookService {
 // CreateBook adds a new book to the store with validation and context propagation
 func (s *BookService) CreateBook(book models.Book) (models.Book, error) {
 
-	// Pass the context to repository method
+	_, authorExists := NewAuthorService(memory.NewInMemoryAuthorStore()).GetAuthor(book.Author.ID)
+	fmt.Println(book.Author.ID)
+	if authorExists != nil {
+		return models.Book{}, errors.New("Author not found")
+	}
 	return s.bookRepo.Create(book)
 }
 
 // GetBookByID retrieves a book by its ID, passing context to the repository
 func (s *BookService) GetBookByID(id int) (models.Book, error) {
-	// Pass the context to repository method
 	return s.bookRepo.Get(id)
 }
 
 // UpdateBook updates an existing book in the store
 func (s *BookService) UpdateBook(book models.Book) (models.Book, error) {
 
-	// Pass the context to repository method
 	return s.bookRepo.Update(book)
 }
 
