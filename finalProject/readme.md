@@ -32,7 +32,7 @@ The following sections describe the API endpoints, based on the Swagger document
 - **GET /authors/{id}**: Retrieve an author by ID.
 - **PUT /authors/{id}**: Update an author by ID.
 - **DELETE /authors/{id}**: Delete an author by ID.
-- **GET /authors**: Search for authors. all customers are are returned if not filters are provided with the json request 
+- **GET /authors**: Search for authors. all authors are are returned if not filters are provided with the json request 
  
 
 #### Customers
