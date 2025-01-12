@@ -1,8 +1,6 @@
 package services
 
 import (
-	"context"
-
 	"bookstore.com/models"
 	"bookstore.com/repositories"
 )
@@ -18,32 +16,29 @@ func NewBookService(bookRepo repositories.BookStore) *BookService {
 }
 
 // CreateBook adds a new book to the store with validation and context propagation
-func (s *BookService) CreateBook(ctx context.Context, book models.Book) (models.Book, error) {
+func (s *BookService) CreateBook(book models.Book) (models.Book, error) {
 
 	// Pass the context to repository method
-	return s.bookRepo.Create(ctx, book)
+	return s.bookRepo.Create(book)
 }
 
 // GetBookByID retrieves a book by its ID, passing context to the repository
-func (s *BookService) GetBookByID(ctx context.Context, id int) (models.Book, error) {
+func (s *BookService) GetBookByID(id int) (models.Book, error) {
 	// Pass the context to repository method
-	return s.bookRepo.Get(ctx, id)
+	return s.bookRepo.Get(id)
 }
 
 // UpdateBook updates an existing book in the store
-func (s *BookService) UpdateBook(ctx context.Context, book models.Book) (models.Book, error) {
+func (s *BookService) UpdateBook(book models.Book) (models.Book, error) {
 
 	// Pass the context to repository method
-	return s.bookRepo.Update(ctx, book)
+	return s.bookRepo.Update(book)
 }
 
-// DeleteBook removes a book from the store
-func (s *BookService) DeleteBook(ctx context.Context, id int) error {
-	return s.bookRepo.Delete(ctx, id)
+func (s *BookService) DeleteBook(id int) error {
+	return s.bookRepo.Delete(id)
 }
 
-// SearchBooks searches for books based on the query criteria
-func (s *BookService) SearchBooks(ctx context.Context, query models.SearchCriteria) ([]models.Book, error) {
-	// Pass the context to repository method
-	return s.bookRepo.Search(ctx, query)
+func (s *BookService) SearchBooks(query models.SearchCriteria) ([]models.Book, error) {
+	return s.bookRepo.Search(query)
 }

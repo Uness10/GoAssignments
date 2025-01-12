@@ -1,8 +1,6 @@
 package services
 
 import (
-	"context"
-
 	"bookstore.com/models"
 	"bookstore.com/repositories"
 )
@@ -15,22 +13,22 @@ func NewAuthorService(repo repositories.AuthorStore) *AuthorService {
 	return &AuthorService{authorRepo: repo}
 }
 
-func (s *AuthorService) CreateAuthor(ctx context.Context, author models.Author) (models.Author, error) {
-	return s.authorRepo.Create(cts, author)
+func (s *AuthorService) CreateAuthor(author models.Author) (models.Author, error) {
+	return s.authorRepo.Create(author)
 }
 
-func (s *AuthorService) GetAuthor(ctx context.Context, id int) (models.Author, error) {
-	return s.authorRepo.Get(ctx, id)
+func (s *AuthorService) GetAuthor(id int) (models.Author, error) {
+	return s.authorRepo.Get(id)
 }
 
-func (s *AuthorService) UpdateAuthor(ctx context.Context, author models.Author) (models.Author, error) {
-	return s.authorRepo.Update(cts, author)
+func (s *AuthorService) UpdateAuthor(author models.Author) (models.Author, error) {
+	return s.authorRepo.Update(author)
 }
 
-func (s *AuthorService) DeleteAuthor(ctx context.Context, id int) error {
-	return s.authorRepo.Delete(ctx, id)
+func (s *AuthorService) DeleteAuthor(id int) error {
+	return s.authorRepo.Delete(id)
 }
 
-func (s *AuthorService) SearchAuthors(ctx context.Context, query models.SearchCriteria) ([]models.Author, error) {
-	return s.authorRepo.Search(ctx, query)
+func (s *AuthorService) SearchAuthors(query models.SearchCriteria) ([]models.Author, error) {
+	return s.authorRepo.Search(query)
 }

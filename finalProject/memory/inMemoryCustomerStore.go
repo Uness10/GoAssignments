@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"context"
 	"errors"
 	"sync"
 
@@ -21,88 +20,58 @@ func NewInMemoryCustomerStore() *InMemoryCustomerStore {
 	}
 }
 
-// Create adds a new customer to the store with context support.
-func (s *InMemoryCustomerStore) Create(ctx context.Context, customer models.Customer) (models.Customer, error) {
-	select {
-	case <-ctx.Done():
-		return models.Customer{}, ctx.Err() // Handle cancellation or timeout
-	default:
-		s.mu.Lock()
-		defer s.mu.Unlock()
+func (s *InMemoryCustomerStore) Create(Customer models.Customer) (models.Customer, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-		customer.ID = s.nextID
-		s.Customers[s.nextID] = customer
-		s.nextID++
-		return customer, nil
-	}
+	Customer.ID = s.nextID
+	s.Customers[s.nextID] = Customer
+	s.nextID++
+	return Customer, nil
 }
 
-// Get retrieves a customer by its ID from the store with context support.
-func (s *InMemoryCustomerStore) Get(ctx context.Context, id int) (models.Customer, error) {
-	select {
-	case <-ctx.Done():
-		return models.Customer{}, ctx.Err() // Handle cancellation or timeout
-	default:
-		s.mu.Lock()
-		defer s.mu.Unlock()
+func (s *InMemoryCustomerStore) Get(id int) (models.Customer, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-		customer, exists := s.Customers[id]
-		if !exists {
-			return models.Customer{}, errors.New("Customer not found")
-		}
-		return customer, nil
+	Customer, exists := s.Customers[id]
+	if !exists {
+		return models.Customer{}, errors.New("Customer not found")
 	}
+	return Customer, nil
 }
 
-// Update modifies an existing customer in the store with context support.
-func (s *InMemoryCustomerStore) Update(ctx context.Context, customer models.Customer) (models.Customer, error) {
-	select {
-	case <-ctx.Done():
-		return models.Customer{}, ctx.Err() // Handle cancellation or timeout
-	default:
-		s.mu.Lock()
-		defer s.mu.Unlock()
+func (s *InMemoryCustomerStore) Update(Customer models.Customer) (models.Customer, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-		_, exists := s.Customers[customer.ID]
-		if !exists {
-			return models.Customer{}, errors.New("Customer not found")
-		}
-		s.Customers[customer.ID] = customer
-		return customer, nil
+	_, exists := s.Customers[Customer.ID]
+	if !exists {
+		return models.Customer{}, errors.New("Customer not found")
 	}
+	s.Customers[Customer.ID] = Customer
+	return Customer, nil
 }
 
-// Delete removes a customer from the store by its ID with context support.
-func (s *InMemoryCustomerStore) Delete(ctx context.Context, id int) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err() // Handle cancellation or timeout
-	default:
-		s.mu.Lock()
-		defer s.mu.Unlock()
+func (s *InMemoryCustomerStore) Delete(id int) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-		_, exists := s.Customers[id]
-		if !exists {
-			return errors.New("Customer not found")
-		}
-		delete(s.Customers, id)
-		return nil
+	_, exists := s.Customers[id]
+	if !exists {
+		return errors.New("Customer not found")
 	}
+	delete(s.Customers, id)
+	return nil
 }
 
-// Search finds customers in the store based on search criteria with context support.
-func (s *InMemoryCustomerStore) Search(ctx context.Context, query models.SearchCriteria) ([]models.Customer, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err() // Handle cancellation or timeout
-	default:
-		s.mu.Lock()
-		defer s.mu.Unlock()
+func (s *InMemoryCustomerStore) Search(query models.SearchCriteria) ([]models.Customer, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-		var results []models.Customer
-		for _, customer := range s.Customers {
-			results = append(results, customer)
-		}
-		return results, nil
+	var results []models.Customer
+	for _, Customer := range s.Customers {
+		results = append(results, Customer)
 	}
+	return results, nil
 }

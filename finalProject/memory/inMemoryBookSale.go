@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"context"
 	"errors"
 	"strings"
 	"sync"
@@ -22,13 +21,7 @@ func NewInMemorybookSalestore() *InMemorybookSalestore {
 	}
 }
 
-func (s *InMemorybookSalestore) Create(ctx context.Context, BookSale models.BookSale) (models.BookSale, error) {
-	select {
-	case <-ctx.Done():
-		return models.BookSale{}, ctx.Err()
-	default:
-	}
-
+func (s *InMemorybookSalestore) Create(BookSale models.BookSale) (models.BookSale, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -38,13 +31,7 @@ func (s *InMemorybookSalestore) Create(ctx context.Context, BookSale models.Book
 	return BookSale, nil
 }
 
-func (s *InMemorybookSalestore) Get(ctx context.Context, id int) (models.BookSale, error) {
-	select {
-	case <-ctx.Done():
-		return models.BookSale{}, ctx.Err()
-	default:
-	}
-
+func (s *InMemorybookSalestore) Get(id int) (models.BookSale, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -55,13 +42,7 @@ func (s *InMemorybookSalestore) Get(ctx context.Context, id int) (models.BookSal
 	return BookSale, nil
 }
 
-func (s *InMemorybookSalestore) Update(ctx context.Context, BookSale models.BookSale) (models.BookSale, error) {
-	select {
-	case <-ctx.Done():
-		return models.BookSale{}, ctx.Err()
-	default:
-	}
-
+func (s *InMemorybookSalestore) Update(BookSale models.BookSale) (models.BookSale, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -73,13 +54,7 @@ func (s *InMemorybookSalestore) Update(ctx context.Context, BookSale models.Book
 	return BookSale, nil
 }
 
-func (s *InMemorybookSalestore) Delete(ctx context.Context, id int) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-
+func (s *InMemorybookSalestore) Delete(id int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -91,15 +66,14 @@ func (s *InMemorybookSalestore) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-func (s *InMemorybookSalestore) Search(ctx context.Context, query models.SearchCriteria) ([]models.BookSale, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
-	}
-
+func (s *InMemorybookSalestore) Search(query models.SearchCriteria) ([]models.BookSale, error) {
 	var results []models.BookSale
-
+	if len(query.Filters) == 0 {
+		for _, book := range s.bookSales {
+			results = append(results, book)
+		}
+		return results, nil
+	}
 	for _, obj := range s.bookSales {
 		match := true
 
@@ -136,13 +110,6 @@ func (s *InMemorybookSalestore) Search(ctx context.Context, query models.SearchC
 		if match {
 			results = append(results, obj)
 		}
-
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
 	}
-
 	return results, nil
 }

@@ -1,8 +1,6 @@
 package services
 
 import (
-	"context"
-
 	"bookstore.com/models"
 	"bookstore.com/repositories"
 )
@@ -15,22 +13,22 @@ func NewCustomerService(repo repositories.CustomerStore) *CustomerService {
 	return &CustomerService{customerRepo: repo}
 }
 
-func (s *CustomerService) CreateCustomer(ctx context.Context, customer models.Customer) (models.Customer, error) {
-	return s.customerRepo.Create(ctx, customer)
+func (s *CustomerService) CreateCustomer(customer models.Customer) (models.Customer, error) {
+	return s.customerRepo.Create(customer)
 }
 
-func (s *CustomerService) GetCustomer(ctx context.Context, id int) (models.Customer, error) {
-	return s.customerRepo.Get(ctx, id)
+func (s *CustomerService) GetCustomer(id int) (models.Customer, error) {
+	return s.customerRepo.Get(id)
 }
 
-func (s *CustomerService) UpdateCustomer(ctx context.Context, customer models.Customer) (models.Customer, error) {
-	return s.customerRepo.Update(ctx, customer)
+func (s *CustomerService) UpdateCustomer(customer models.Customer) (models.Customer, error) {
+	return s.customerRepo.Update(customer)
 }
 
-func (s *CustomerService) DeleteCustomer(ctx context.Context, id int) error {
-	return s.customerRepo.Delete(ctx, id)
+func (s *CustomerService) DeleteCustomer(id int) error {
+	return s.customerRepo.Delete(id)
 }
 
-func (s *CustomerService) SearchCustomers(ctx context.Context, query models.SearchCriteria) ([]models.Customer, error) {
-	return s.customerRepo.Search(ctx, query)
+func (s *CustomerService) SearchCustomers(query models.SearchCriteria) ([]models.Customer, error) {
+	return s.customerRepo.Search(query)
 }

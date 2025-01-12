@@ -1,5 +1,5 @@
 package models
 
 type SearchCriteria struct {
-	Filters map[interface{}]interface{}
+	Filters map[string]interface{}
 }
