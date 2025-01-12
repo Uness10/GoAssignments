@@ -9,11 +9,11 @@ import (
 )
 
 type InMemoryStore struct {
-	BookStore      InMemoryBookStore
-	AuthorStore    InMemoryAuthorStore
-	CustomerStore  InMemoryCustomerStore
-	OrderStore     InMemoryOrderStore
-	OrderItemStore InMemoryOrderItemStore
+	BookStore     InMemoryBookStore
+	AuthorStore   InMemoryAuthorStore
+	CustomerStore InMemoryCustomerStore
+	OrderStore    InMemoryOrderStore
+	SalesReport   InMemorySalesReportStore
 }
 
 var (
@@ -60,12 +60,7 @@ func initializeStores(store *InMemoryStore) {
 		store.OrderStore = *NewInMemoryOrderStore()
 	}
 
-	// Initialize OrderItemStore if it is not initialized
-	if store.OrderItemStore.OrderItems == nil {
-		store.OrderItemStore = *NewInMemoryOrderItemStore()
-	}
 }
-
 func LoadData() (*InMemoryStore, error) {
 	data, err := os.ReadFile("database.json")
 	if err != nil {

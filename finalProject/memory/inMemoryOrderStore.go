@@ -37,7 +37,10 @@ func (s *InMemoryOrderStore) Create(Order models.Order) (models.Order, error) {
 
 	Order.ID = s.nextID
 	s.Orders[s.nextID] = Order
+
 	s.nextID++
+	NewInMemorySalesReportStore().ordersList = append(NewInMemorySalesReportStore().ordersList, Order)
+
 	return Order, nil
 }
 
