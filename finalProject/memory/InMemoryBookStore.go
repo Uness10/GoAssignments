@@ -2,6 +2,7 @@ package memory
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -38,6 +39,7 @@ func (s *InMemoryBookStore) Create(book models.Book) (models.Book, error) {
 
 	book.ID = s.nextID
 	s.Books[s.nextID] = book
+	fmt.Println(s.Books)
 	s.nextID++
 	return book, nil
 }

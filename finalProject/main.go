@@ -59,7 +59,7 @@ func main() {
 	handleCustomerRequests(router, customerHandler)
 	handleOrderRequests(router, orderHandler)
 
-	database.Schedule()
+	//database.Schedule()
 
 	// Start the HTTP server
 	log.Println("Server starting on :8080")
