@@ -111,6 +111,69 @@ The project is structured as follows:
   - **Setting Up Routes**: Configures the HTTP router with all API endpoints, linking handlers to paths.
   - **Starting the Server**: Launches the HTTP server, listening for incoming requests on the specified port.
 
+
+### Concurrency in Action
+
+The `DispatcherWrapper` function in `main.go` is a middleware that wraps HTTP request handlers to provide concurrency control and timeout management.
+
+```go
+func DispatcherWrapper(
+    w http.ResponseWriter,
+    r *http.Request,
+    ps httprouter.Params,
+    requestHandler func(http.ResponseWriter, *http.Request, httprouter.Params),
+) {
+    w.Header().Set("Content-Type", "application/json")
+    
+    clientContext := r.Context()
+    requestContext, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+    defer cancel()
+    
+    requestChannel := make(chan bool)
+    
+    go func() {
+        requestHandler(w, r, ps)
+        requestChannel <- true
+    }()
+    
+    select {
+    case <-clientContext.Done():
+        log.Println("Connection Lost")
+        return
+    case <-requestChannel:
+        log.Println("Request Done with Success")
+    case <-requestContext.Done():
+        log.Println("Request Timeout")
+    }
+}
+```
+
+#### How It Works
+
+The dispatcher implements three key concurrency patterns:
+
+1. **Goroutine Management**
+   - Launches each request handler in a separate goroutine
+   - Uses channels to communicate completion status
+   - Prevents blocking on long-running requests
+
+2. **Context Timeout**
+   - Sets a 3-second timeout for each request
+   - Automatically cancels requests that exceed the timeout
+   - Helps prevent resource exhaustion
+
+3. **Connection Monitoring**
+   - Tracks client connection status
+   - Gracefully handles client disconnections
+   - Ensures proper cleanup of resources
+
+#### Error Handling
+
+The wrapper handles three possible scenarios:
+- Successful completion: Request completes within timeout
+- Client disconnection: Connection lost before completion
+- Request timeout: Operation exceeds 3-second limit
+
 ## Example Requests
 
 Refer to the Swagger file to explore different APIs and their examples.
