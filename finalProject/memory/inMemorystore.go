@@ -8,10 +8,11 @@ import (
 )
 
 type InMemoryStore struct {
-	BookStore     InMemoryBookStore     `json:"books"`
-	AuthorStore   InMemoryAuthorStore   `json:"authors"`
-	CustomerStore InMemoryCustomerStore `json:"customers"`
-	OrderStore    InMemoryOrderStore    `json:"orders"`
+	BookStore      InMemoryBookStore
+	AuthorStore    InMemoryAuthorStore
+	CustomerStore  InMemoryCustomerStore
+	OrderStore     InMemoryOrderStore
+	OrderItemStore InMemoryOrderItemStore
 }
 
 var (
@@ -57,6 +58,10 @@ func initializeStores(store *InMemoryStore) {
 		store.OrderStore = *NewInMemoryOrderStore()
 	}
 
+	// Initialize OrderItemStore if it is not initialized
+	if store.OrderItemStore.OrderItems == nil {
+		store.OrderItemStore = *NewInMemoryOrderItemStore()
+	}
 }
 
 func LoadData() (*InMemoryStore, error) {
@@ -66,7 +71,7 @@ func LoadData() (*InMemoryStore, error) {
 	}
 
 	store := &InMemoryStore{}
-	err = json.Unmarshal(data, store)
+	err = json.Unmarshal(data, &store)
 	if err != nil {
 		return nil, err
 	}
